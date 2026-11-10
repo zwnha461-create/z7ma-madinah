@@ -37,7 +37,10 @@ const pillIcon = (name: string, score: number) => {
 };
 
 /**
- * Dark interactive traffic map (Leaflet + CARTO dark tiles).
+ * Dark interactive traffic map (Leaflet + Esri World Dark Gray Canvas,
+ * darkened further by CSS filter; street labels render in a pane above the
+ * road lines, like the original). CARTO tiles were dropped 2026-11-11 —
+ * they began demanding an API key on the published site.
  * Road lines use real OpenStreetMap geometries (baked in src/lib/roadsGeo.ts).
  * Their COLORS come straight from the roadScores prop — the same snapshot
  * values as the streets list — so when live TomTom overrides are active in
@@ -66,10 +69,28 @@ export default function TrafficMap({ roadScores, zoneScores, onZonePick, onTrend
     });
     map.attributionControl.setPrefix(false);
     L.control.zoom({ position: 'topright' }).addTo(map);
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-      attribution: '© OpenStreetMap contributors © CARTO',
-      subdomains: 'abcd',
+    // Street labels sit in their own pane ABOVE the road polylines
+    // (overlay pane = 400) but below the zone pill markers (marker pane = 600),
+    // so names stay readable over our colored roads like on the original site.
+    map.createPane('labels');
+    const labelsPane = map.getPane('labels');
+    if (labelsPane) {
+      labelsPane.style.zIndex = '450';
+      labelsPane.style.pointerEvents = 'none';
+    }
+    // Esri World Dark Gray Canvas — free, no API key. The base is darkened
+    // toward near-black via the .esri-dark CSS filter in styles.css.
+    L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}', {
+      attribution: '© Esri © OpenStreetMap contributors',
+      maxNativeZoom: 16,
       maxZoom: 19,
+      className: 'esri-dark',
+    }).addTo(map);
+    L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Reference/MapServer/tile/{z}/{y}/{x}', {
+      maxNativeZoom: 16,
+      maxZoom: 19,
+      pane: 'labels',
+      className: 'esri-labels',
     }).addTo(map);
     mapRef.current = map;
 
