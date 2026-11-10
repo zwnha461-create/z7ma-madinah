@@ -61,6 +61,17 @@ export function roadScore(road: Road, date: Date, dirIdx = 0): number {
   return Math.max(0.02, Math.min(0.99, raw));
 }
 
+/** Per-road score overrides (0..1 fractions by road id), e.g. live TomTom
+ *  scores from src/lib/live.ts. When an override exists for a road it wins
+ *  over the pattern model everywhere the road's CURRENT score is shown. */
+export type ScoreOverrides = Partial<Record<string, number>>;
+
+export function displayScore(road: Road, date: Date, overrides?: ScoreOverrides, dirIdx = 0): number {
+  const o = overrides?.[road.id];
+  if (o != null && Number.isFinite(o)) return Math.max(0, Math.min(1, o));
+  return roadScore(road, date, dirIdx);
+}
+
 export function statusOf(score: number): { key: StatusKey; label: string; color: string } {
   if (score < 0.28) return { key: 'empty', label: 'فاضي', color: '#22C55E' };
   if (score < 0.52) return { key: 'light', label: 'خفيفة', color: '#14B8A6' };
@@ -93,9 +104,13 @@ export interface Snapshot {
   trend: number; extraMin: number; usualPct: number; diffPct: number;
   forecast: { hourLabel: string; pct: number }[]; bestTime: string; clearTime: string; clearLabel: string; peakLabel: string;
 }
-export function snapshot(date = riyadhNow()): Snapshot {
+export function snapshot(date = riyadhNow(), overrides?: ScoreOverrides): Snapshot {
   const avg = (d: Date) => ROADS.reduce((a, r) => a + roadScore(r, d), 0) / ROADS.length;
-  const cur = avg(date);
+  // Current average uses live overrides where present; previous hour, the
+  // "usual" baseline and the hourly forecast stay pattern-based (forecasts).
+  const cur = overrides
+    ? ROADS.reduce((a, r) => a + displayScore(r, date, overrides), 0) / ROADS.length
+    : avg(date);
   const prev = new Date(date); prev.setHours(prev.getHours() - 1);
   const trend = Math.round((cur - avg(prev)) * 100);
   const pct = Math.round(cur * 100);
@@ -107,6 +122,8 @@ export function snapshot(date = riyadhNow()): Snapshot {
     const hh = d.getHours(); const ap = hh < 12 ? 'ص' : 'م'; const h12 = hh % 12 === 0 ? 12 : hh % 12;
     return { hourLabel: `${h12} ${ap}`, pct: Math.round(avg(d) * 100) };
   });
+  // The strip's first item is "now" — keep it identical to the (possibly live) gauge.
+  if (overrides && forecast.length) forecast[0] = { ...forecast[0], pct };
   let best = forecast[0], bi = 0; forecast.forEach((f, i) => { if (f.pct < best.pct) { best = f; bi = i; } });
   const clear = forecast.find((f) => f.pct < 35);
   return {
