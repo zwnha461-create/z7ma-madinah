@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { ROADS, ZONES, ZoneId, statusOf } from '../lib/engine';
@@ -10,6 +10,8 @@ interface Props {
   /** Average congestion score (0..1) per zone id — same values as the zone cards. */
   zoneScores: Record<ZoneId, number>;
   onZonePick: (z: ZoneId) => void;
+  /** «الهبّات 🔥» overlay pill — navigate to the trends page. */
+  onTrends: () => void;
 }
 
 const ZONE_POS: Record<ZoneId, [number, number]> = {
@@ -41,7 +43,8 @@ const pillIcon = (name: string, score: number) => {
  * values as the streets list — so when live TomTom overrides are active in
  * App, the map recolors to measured speeds automatically (update effect).
  */
-export default function TrafficMap({ roadScores, zoneScores, onZonePick }: Props) {
+export default function TrafficMap({ roadScores, zoneScores, onZonePick, onTrends }: Props) {
+  const [glowOn, setGlowOn] = useState(true);
   const boxRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<L.Map | null>(null);
   const roadLayers = useRef<Record<string, { glow: L.Polyline; main: L.Polyline }[]>>({});
@@ -119,11 +122,26 @@ export default function TrafficMap({ roadScores, zoneScores, onZonePick }: Props
     }
   }, [roadScores, zoneScores]);
 
+  // «اتجاهات الزحمة» pill toggles the roads' glow underlay on/off.
+  useEffect(() => {
+    for (const pairs of Object.values(roadLayers.current)) {
+      for (const { glow } of pairs) glow.setStyle({ opacity: glowOn ? 0.25 : 0 });
+    }
+  }, [glowOn]);
+
+  const flyHaram = () => { mapRef.current?.flyTo([24.4672, 39.6111], 14, { duration: 0.8 }); };
+
   return (
     <div className="mapBox leafletBox">
       <div ref={boxRef} className="leafletMap" dir="ltr" />
       <div className="legend"><span>واقف</span><div className="legendBar" /><span>سالك</span></div>
-      <span className="mapChip">⚠ اتجاهات الزحمة</span>
+      <div className="mapOverlayBottom" dir="ltr">
+        <button className={`mapBtn ${glowOn ? 'on' : ''}`} onClick={() => setGlowOn(g => !g)}>اتجاهات الزحمة ⚠</button>
+        <span className="mapBtnGroup">
+          <button className="mapBtn" onClick={flyHaram}>الحرم 🕌</button>
+          <button className="mapBtn" onClick={onTrends}>الهبّات 🔥</button>
+        </span>
+      </div>
     </div>
   );
 }
