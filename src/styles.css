@@ -53,6 +53,7 @@ button{font-family:inherit;cursor:pointer}
 .heroSub{color:var(--mut);margin:0;font-size:14.5px}
 .heroChips{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:13px}
 .chip{background:var(--card);border:1px solid var(--border);color:var(--mut);border-radius:99px;padding:6px 14px;font-size:13px;font-weight:700}
+.chip.liveChip{display:inline-flex;align-items:center;gap:7px;color:#22C55E;border-color:#22C55E66;font-weight:800}
 
 /* cards & sections */
 .card{background:var(--card);border:1px solid var(--border);border-radius:18px;padding:20px;margin:26px 0}
@@ -68,11 +69,21 @@ button{font-family:inherit;cursor:pointer}
 /* map */
 .mapCard{margin-top:30px}
 .mapBox{position:relative;border-radius:18px;overflow:hidden;border:1px solid var(--border);background:var(--card)}
-iframe.map{width:100%;height:500px;border:0;display:block}
-.legend{position:absolute;top:12px;left:12px;background:rgba(10,11,12,.86);color:#fff;border-radius:10px;padding:7px 10px;display:flex;align-items:center;gap:7px;font-size:11.5px;font-weight:700}
+.leafletMap{width:100%;height:500px;background:#0A0B0C;font-family:inherit;z-index:0}
+.legend{position:absolute;top:12px;left:12px;z-index:1001;background:rgba(10,11,12,.86);color:#fff;border-radius:10px;padding:7px 10px;display:flex;align-items:center;gap:7px;font-size:11.5px;font-weight:700;pointer-events:none}
 .legendBar{width:84px;height:7px;border-radius:99px;background:linear-gradient(to left,#EF4444,#F97316,#EAB308,#22C55E,#00C2D8)}
-.zoneMarker{position:absolute;transform:translate(-50%,-50%);background:rgba(10,11,12,.88);color:#fff;border:1.5px solid;border-radius:99px;padding:5px 11px;font-size:12.5px;font-weight:700;white-space:nowrap;z-index:3}
-.zoneMarker b{color:#fff}
+.mapChip{position:absolute;bottom:12px;left:12px;z-index:1001;background:rgba(10,11,12,.88);color:#fff;border:1px solid #1F2A28;border-radius:99px;padding:6px 13px;font-size:12.5px;font-weight:700;pointer-events:none}
+/* leaflet dark overrides */
+.leaflet-bar{border:1px solid #1F2A28;border-radius:10px;overflow:hidden;box-shadow:0 2px 10px rgba(0,0,0,.45)}
+.leaflet-bar a{background:#141A1A;color:#fff;border-bottom:1px solid #1F2A28;width:32px;height:32px;line-height:32px}
+.leaflet-bar a:hover{background:#1F2A28}
+.leaflet-control-attribution{background:rgba(10,11,12,.72)!important;color:#8A9490!important;font-size:10px;padding:1px 6px}
+.leaflet-control-attribution a{color:#8A9490!important}
+.leaflet-tooltip.trafficTip{background:rgba(10,11,12,.94);color:#fff;border:1px solid #1F2A28;border-radius:10px;box-shadow:0 4px 14px rgba(0,0,0,.5);font-family:'Tajawal',sans-serif;font-size:13px;font-weight:700;direction:rtl;padding:6px 11px}
+.leaflet-tooltip.trafficTip::before{display:none}
+.zoneMarkerIcon{background:none;border:none}
+.zonePill{transform:translate(-50%,-50%);background:rgba(10,11,12,.88);color:#fff;border:1.5px solid;border-radius:99px;padding:5px 11px;font-size:12.5px;font-weight:700;white-space:nowrap;cursor:pointer;direction:rtl;text-align:center}
+.zonePill b{color:#fff}
 .mapNote{color:var(--mut);font-size:13px;margin:10px 2px 0;line-height:1.9}
 .forecast{display:flex;gap:6px;margin-top:14px;background:var(--card);border:1px solid var(--border);border-radius:16px;padding:12px 8px}
 .fcItem{flex:1;text-align:center;border-radius:12px;padding:6px 2px}
@@ -171,13 +182,13 @@ input[type=text]{width:100%;background:var(--input);border:1px solid var(--borde
 
 @media (max-width:640px){
   .wrap{padding:0 12px 46px}
-  iframe.map{height:340px}
+  .leafletMap{height:340px}
   .gaugeWrap{width:248px}
   .gaugeNum{font-size:46px}
   .heroHead{font-size:19px}
   .crossGrid{grid-template-columns:1fr}
   .streetName{flex-basis:38%;font-size:13px}
-  .zoneMarker{font-size:11px;padding:4px 8px}
+  .zonePill{font-size:11px;padding:4px 8px}
   .pillNav button{padding:8px 14px;font-size:14px}
   .card{padding:16px}
   .fcItem b{font-size:17px}

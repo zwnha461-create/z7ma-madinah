@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useState } from 'react';
-import { ROADS, ZONES, ZoneId, PLACES, placeBusy, riyadhNow, roadScore, snapshot, statusOf, hourlyProfile } from './lib/engine';
+import { ROADS, ZONES, ZoneId, PLACES, placeBusy, riyadhNow, displayScore, snapshot, statusOf, hourlyProfile, ScoreOverrides } from './lib/engine';
+import { getLiveScores, LIVE_REFRESH_MS, LiveData } from './lib/live';
+import TrafficMap from './components/TrafficMap';
 
 type Page = 'home' | 'calendar' | 'share' | 'trends' | 'guide' | 'privacy';
-const MAP_EMBED = 'https://www.google.com/maps?q=24.4672,39.6111&z=12&layer=t&output=embed';
 const mapsLink = (q: string) => `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(q)}`;
 
 /* ---------- helpers ---------- */
@@ -20,7 +21,9 @@ function headline(pct: number): string {
   if (pct < 85) return 'الحركة زحمة، أجّل طلعتك إن تقدر';
   return 'الحركة واقفة تقريباً، الأفضل تنتظر ⛔';
 }
-const zoneAvg = (zid: ZoneId, now: Date) => { const rs = ROADS.filter(r => r.zone === zid); return rs.length ? rs.reduce((a, r) => a + roadScore(r, now), 0) / rs.length : 0; };
+const zoneAvg = (zid: ZoneId, now: Date, overrides?: ScoreOverrides) => { const rs = ROADS.filter(r => r.zone === zid); return rs.length ? rs.reduce((a, r) => a + displayScore(r, now, overrides), 0) / rs.length : 0; };
+/** Riyadh wall-clock time of an epoch-ms instant (for the live "last updated" chip). */
+const fmtEpochRiyadh = (ms: number) => fmtClock(new Date(new Date(ms).toLocaleString('en-US', { timeZone: 'Asia/Riyadh' })));
 
 /* ---------- gauge ---------- */
 function Gauge({ value, color }: { value: number; color: string }) {
@@ -40,20 +43,28 @@ function Gauge({ value, color }: { value: number; color: string }) {
 }
 
 /* ---------- home ---------- */
-function Home({ go }: { go: (p: Page) => void }) {
+function Home({ go, live }: { go: (p: Page) => void; live: LiveData | null }) {
   const [zone, setZone] = useState<ZoneId>('central');
   const [tab, setTab] = useState<'zones' | 'streets'>('zones');
   const [, force] = useState(0);
   useEffect(() => { const t = setInterval(() => force(x => x + 1), 60000); return () => clearInterval(t); }, []);
   const now = riyadhNow();
-  const snap = useMemo(() => snapshot(now), [now.getHours(), now.getMinutes()]);
+  // Live TomTom scores override the pattern model per road wherever present.
+  const overrides = useMemo<ScoreOverrides | undefined>(() => {
+    if (!live || !live.scores.size) return undefined;
+    const o: ScoreOverrides = {};
+    live.scores.forEach((s, id) => { o[id] = s.score; });
+    return o;
+  }, [live]);
+  const snap = useMemo(() => snapshot(now, overrides), [now.getHours(), now.getMinutes(), overrides]);
   const st = statusOf(snap.pct / 100);
-  const scored = ROADS.map(r => ({ r, s: roadScore(r, now) })).sort((a, b) => b.s - a.s);
+  const scored = ROADS.map(r => ({ r, s: displayScore(r, now, overrides) })).sort((a, b) => b.s - a.s);
   const zoneRoads = ROADS.filter(r => r.zone === zone);
-  const markerPos: Record<ZoneId, { left: string; top: string }> = {
-    central: { left: '50%', top: '54%' }, north: { left: '52%', top: '16%' }, south: { left: '47%', top: '84%' },
-    east: { left: '79%', top: '44%' }, west: { left: '20%', top: '44%' },
-  };
+  // Map inputs: per road the worse of its two directions; per zone its average.
+  const roadWorst: Record<string, number> = {};
+  ROADS.forEach(r => { roadWorst[r.id] = Math.max(displayScore(r, now, overrides, 0), displayScore(r, now, overrides, 1)); });
+  const zoneScores = {} as Record<ZoneId, number>;
+  ZONES.forEach(z => { zoneScores[z.id] = zoneAvg(z.id, now, overrides); });
   const pickZone = (z: ZoneId) => { setZone(z); setTab('zones'); document.getElementById('zones-streets')?.scrollIntoView({ behavior: 'smooth' }); };
   return (<>
     {/* HERO GAUGE */}
@@ -72,20 +83,16 @@ function Home({ go }: { go: (p: Page) => void }) {
       <div className="heroChips">
         <span className="chip">+{snap.extraMin}د على رحلة 30 د</span>
         <span className="chip">{snap.trend > 2 ? `▲ تزيد ${snap.trend}%` : snap.trend < -2 ? `▼ تنقص ${Math.abs(snap.trend)}%` : '— مستقرة'} عن الساعة الماضية</span>
+        {live && <span className="chip liveChip"><i className="dot" style={{ background: '#22C55E' }} />بيانات حية · TomTom — آخر تحديث {fmtEpochRiyadh(live.fetchedAt)}</span>}
       </div>
     </section>
 
     {/* MAP */}
     <section className="mapCard">
-      <div className="mapBox">
-        <iframe className="map" title="خريطة حركة المدينة المنورة الحية" src={MAP_EMBED} loading="lazy" />
-        <div className="legend"><span>واقف</span><div className="legendBar" /><span>سالك</span></div>
-        {ZONES.map(z => { const s = zoneAvg(z.id, now); const zs = statusOf(s); return (
-          <button key={z.id} className="zoneMarker" style={{ ...markerPos[z.id], borderColor: zs.color }} onClick={() => pickZone(z.id)}>
-            {z.name} <b>{Math.round(s * 100)}%</b>
-          </button>); })}
-      </div>
-      <p className="mapNote">{snap.clearLabel ? `تخف الزحمة الساعة ${snap.clearLabel}` : 'تبقى الزحمة متوسطة الليلة'} · الخريطة تعرض الحركة الحية الفعلية من خرائط جوجل، والمؤشر أعلاه تقديري بأنماط الحركة المعتادة.</p>
+      <TrafficMap roadScores={roadWorst} zoneScores={zoneScores} onZonePick={pickZone} />
+      <p className="mapNote">{snap.clearLabel ? `تخف الزحمة الساعة ${snap.clearLabel}` : 'تبقى الزحمة متوسطة الليلة'} · {live
+        ? 'طرق مرسومة على خريطة شوارع حقيقية، وألوان الطرق الرئيسية من سرعات مقاسة حياً عبر TomTom وتُحدّث كل ١٠ دقائق.'
+        : 'طرق مرسومة على خريطة شوارع حقيقية، وألوانها تقديرية بنموذجنا — مو حركة حية مقاسة.'}</p>
       {/* FORECAST STRIP */}
       <div className="forecast">
         {snap.forecast.map((f, i) => (
@@ -104,7 +111,7 @@ function Home({ go }: { go: (p: Page) => void }) {
       </div>
       {tab === 'zones' ? (<>
         <div className="zoneGrid">
-          {ZONES.map(z => { const s = zoneAvg(z.id, now); const zs = statusOf(s); const delta = Math.round(s * 100) - snap.pct; return (
+          {ZONES.map(z => { const s = zoneAvg(z.id, now, overrides); const zs = statusOf(s); const delta = Math.round(s * 100) - snap.pct; return (
             <button key={z.id} className={`zoneCard ${zone === z.id ? 'sel' : ''}`} onClick={() => setZone(z.id)}>
               <span className="zoneDelta">{delta > 0 ? `+${delta}%` : delta < 0 ? `${delta}%` : '±0%'}</span>
               <span className="zoneName">{z.name}</span>
@@ -117,8 +124,8 @@ function Home({ go }: { go: (p: Page) => void }) {
           <h3>{ZONES.find(z => z.id === zone)?.name} — {ZONES.find(z => z.id === zone)?.desc}</h3>
           {zoneRoads.map(r => (
             <div key={r.id} className="dirGroup">
-              <div className="row"><span>{r.name}</span><StatusWord s={roadScore(r, now)} /></div>
-              {r.dirs.map((d, i) => (<div className="row indent" key={i}><span className="mut">{d}</span><StatusWord s={roadScore(r, now, i)} /></div>))}
+              <div className="row"><span>{r.name}</span><StatusWord s={displayScore(r, now, overrides)} /></div>
+              {r.dirs.map((d, i) => (<div className="row indent" key={i}><span className="mut">{d}</span><StatusWord s={displayScore(r, now, overrides, i)} /></div>))}
             </div>))}
           <button className="btn ghost" onClick={() => setTab('streets')}>استكشف المزيد من الشوارع</button>
         </div>
@@ -288,7 +295,7 @@ function PrivacyPage() {
     <p className="pageSub">باختصار: ما نجمع عنك شي.</p>
     <div className="card guideText">
       <p>لا توجد حسابات ولا تسجيل دخول في هذا الموقع، ولا يُجمع أي بيان شخصي ولا يُرسل لأي خادم تابع لنا.</p>
-      <p>مؤشر الزحمة والنسب المعروضة تقديرات مبنية على أنماط الحركة المعتادة في المدينة المنورة، وليست قياسات حية من حساسات طرق؛ الخريطة وحدها تعرض حركة حية من خرائط جوجل وفق سياستها.</p>
+      <p>عند تفعيل البيانات الحية، تُبنى نسب الطرق الرئيسية على سرعات مقاسة فعلياً عبر خدمة TomTom (سرعة الشارع الحالية مقارنة بسرعته وهو فاضٍ) وتُحدّث كل ١٠ دقائق، ويطلبها متصفحك من TomTom مباشرة. وعند غيابها تكون النسب تقديرات مبنية على أنماط الحركة المعتادة في المدينة المنورة. التوقعات القادمة ورسم «ساعات الذروة» تقديرية بالأنماط دائماً في الحالتين. ألوان الطرق مرسومة على خريطة شوارع حقيقية من OpenStreetMap.</p>
       <p>عند استخدام «حدد موقعي» في صفحة اللوكيشن، يبقى موقعك في جهازك ولا يُستخدم إلا داخل نص المشاركة الذي ترسله أنت بنفسك.</p>
       <p>مواقيت الصلاة تُجلب من خدمة Aladhan العامة. هذه نسخة مدينة مقترحة لأهل المدينة وزوّارها.</p>
     </div>
@@ -299,7 +306,19 @@ function PrivacyPage() {
 export default function App() {
   const [page, setPage] = useState<Page>('home');
   const [light, setLight] = useState(false);
+  const [live, setLive] = useState<LiveData | null>(null);
   useEffect(() => { document.documentElement.dataset.theme = light ? 'light' : 'dark'; }, [light]);
+  // Live TomTom data (only when a key is configured): cache-aware load on
+  // mount, then refresh at most every 10 minutes while the page stays open.
+  useEffect(() => {
+    const key = import.meta.env.VITE_TOMTOM_KEY as string | undefined;
+    if (!key) return;
+    let alive = true;
+    const load = () => { getLiveScores(key).then(d => { if (alive && d) setLive(d); }).catch(() => {}); };
+    load();
+    const t = setInterval(load, LIVE_REFRESH_MS);
+    return () => { alive = false; clearInterval(t); };
+  }, []);
   const tabs: { id: Page; label: string }[] = [
     { id: 'home', label: 'الزحمة' }, { id: 'guide', label: 'دليل المركزية' }, { id: 'trends', label: 'الهبّات' },
     { id: 'calendar', label: 'التقويم' }, { id: 'share', label: 'اللوكيشن' },
@@ -321,7 +340,7 @@ export default function App() {
     </header>
     <div className="wrap">
       <nav className="pillNav">{tabs.map(t => (<button key={t.id} className={page === t.id ? 'on' : ''} onClick={() => go(t.id)}>{t.label}</button>))}</nav>
-      {page === 'home' && <Home go={go} />}
+      {page === 'home' && <Home go={go} live={live} />}
       {page === 'calendar' && <CalendarPage />}
       {page === 'share' && <SharePage />}
       {page === 'trends' && <TrendsPage />}
@@ -331,7 +350,9 @@ export default function App() {
         <span>نسخة المدينة المنورة — مقترح</span>
         <button className="footLink" onClick={() => go('privacy')}>سياسة الخصوصية</button>
       </footer>
-      <p className="footNote">مؤشر تقديري مبني على أنماط الحركة المعتادة في المدينة — الخريطة تعرض الحركة الحية الفعلية · بدون حساب وبدون جمع أي بيانات شخصية</p>
+      <p className="footNote">{live
+        ? 'سرعات الطرق الرئيسية مقاسة حياً عبر TomTom وتُحدّث كل ١٠ دقائق — التوقعات وساعات الذروة تبقى تقديرية بأنماط الحركة المعتادة · بدون حساب وبدون جمع أي بيانات شخصية'
+        : 'مؤشر تقديري مبني على أنماط الحركة المعتادة في المدينة — ألوان طرق الخريطة من نفس النموذج · بدون حساب وبدون جمع أي بيانات شخصية'}</p>
     </div>
   </>);
 }
