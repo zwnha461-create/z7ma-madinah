@@ -1,0 +1,184 @@
+:root{
+  --bg:#031313; --glow:#071B16; --header:#0A0B0C; --card:#101615; --card2:#141A1A;
+  --border:#1F2A28; --text:#ffffff; --mut:#8A9490; --accent:#00C2D8; --accent2:#00BFD4;
+  --track:#1E2A28; --chip:#141A1A; --input:#0B100F;
+}
+[data-theme="light"]{
+  --bg:#EEF4F2; --glow:#DDEEE8; --header:#FFFFFF; --card:#FFFFFF; --card2:#F4F8F6;
+  --border:#D8E2DE; --text:#0B1512; --mut:#5C6B66; --track:#DCE7E3; --chip:#EDF3F1; --input:#F7FAF9;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;color:var(--text);font-family:'Tajawal','IBM Plex Sans Arabic',system-ui,sans-serif;
+  background:radial-gradient(900px 340px at 50% -60px,var(--glow),transparent 70%),var(--bg);min-height:100vh}
+a{color:var(--accent)}
+button{font-family:inherit;cursor:pointer}
+.wrap{max-width:1050px;margin:0 auto;padding:0 16px 60px}
+.mut{color:var(--mut);font-size:13px;line-height:1.9}
+.center{text-align:center}
+.dot{display:inline-block;width:8px;height:8px;border-radius:50%;flex:none}
+
+/* header */
+.topbar{background:var(--header);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:20}
+.topInner{max-width:1050px;margin:0 auto;padding:10px 16px;display:flex;align-items:center;justify-content:space-between;gap:10px}
+.brand{display:flex;align-items:center;gap:9px}
+.logoIcon{width:34px;height:34px}
+.logoText{font-size:24px;font-weight:900}
+.cityPill{display:flex;align-items:center;gap:5px;background:var(--chip);color:var(--text);border:1px solid var(--border);border-radius:99px;padding:6px 13px;font-size:14px;font-weight:700}
+.cityPill .chev{color:var(--mut);font-size:12px}
+.topActions{display:flex;align-items:center;gap:8px}
+.enBtn{border:1px solid var(--border);background:var(--chip);color:var(--mut);border-radius:99px;padding:6px 12px;font-size:13px;font-weight:800;letter-spacing:.5px}
+.iconBtn{width:36px;height:36px;border-radius:50%;border:1px solid var(--border);background:var(--chip);color:var(--text);font-size:16px}
+
+/* pill nav */
+.pillNav{display:flex;gap:4px;background:var(--card);border:1px solid var(--border);border-radius:99px;padding:5px;margin:18px auto 6px;width:fit-content;max-width:100%;overflow-x:auto;scrollbar-width:none}
+.pillNav::-webkit-scrollbar{display:none}
+.pillNav button{white-space:nowrap;background:transparent;border:0;color:var(--mut);border-radius:99px;padding:9px 20px;font-size:15px;font-weight:700}
+.pillNav button.on{background:#fff;color:#000}
+
+/* hero gauge */
+.hero{text-align:center;padding:26px 0 8px}
+.statusPill{display:inline-flex;align-items:center;gap:7px;background:var(--card);border:1px solid var(--border);border-radius:99px;padding:6px 15px;font-weight:800;font-size:14px}
+.sinceLine{color:var(--mut);font-size:12.5px;margin-top:9px}
+.gaugeWrap{position:relative;width:320px;max-width:82vw;margin:2px auto 0}
+.gaugeSvg{width:100%;display:block}
+.gaugeSvg .ticks line{stroke:var(--border);stroke-width:2}
+.gaugeTrack{fill:none;stroke:var(--track);stroke-width:11;stroke-linecap:round}
+.gaugeFill{fill:none;stroke-width:11;stroke-linecap:round}
+.gaugeCenter{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;padding-top:26px}
+.gaugeNum{font-size:60px;font-weight:900;line-height:1}
+.gaugeOf{font-size:19px;color:var(--mut);font-weight:700;margin-inline-start:5px}
+.gaugeStatus{font-size:19px;font-weight:800;margin-top:5px}
+.heroHead{font-size:22px;font-weight:800;margin:2px 0 4px}
+.heroSub{color:var(--mut);margin:0;font-size:14.5px}
+.heroChips{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:13px}
+.chip{background:var(--card);border:1px solid var(--border);color:var(--mut);border-radius:99px;padding:6px 14px;font-size:13px;font-weight:700}
+
+/* cards & sections */
+.card{background:var(--card);border:1px solid var(--border);border-radius:18px;padding:20px;margin:26px 0}
+.secTitle{font-size:21px;font-weight:800;margin:0 0 2px}
+.secSub{color:var(--mut);margin:0 0 14px;font-size:14px}
+.pageTitle{font-size:23px;font-weight:900;text-align:center;margin:26px 0 2px}
+.pageSub{color:var(--mut);text-align:center;margin:0 auto 6px;font-size:14.5px;max-width:560px;line-height:1.9}
+.row{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:9px 0;border-bottom:1px solid var(--border)}
+.row:last-child{border-bottom:0}
+.row.indent{padding-inline-start:16px}
+.statusWord{display:inline-flex;align-items:center;gap:6px;font-weight:800;font-size:14px;white-space:nowrap}
+
+/* map */
+.mapCard{margin-top:30px}
+.mapBox{position:relative;border-radius:18px;overflow:hidden;border:1px solid var(--border);background:var(--card)}
+iframe.map{width:100%;height:500px;border:0;display:block}
+.legend{position:absolute;top:12px;left:12px;background:rgba(10,11,12,.86);color:#fff;border-radius:10px;padding:7px 10px;display:flex;align-items:center;gap:7px;font-size:11.5px;font-weight:700}
+.legendBar{width:84px;height:7px;border-radius:99px;background:linear-gradient(to left,#EF4444,#F97316,#EAB308,#22C55E,#00C2D8)}
+.zoneMarker{position:absolute;transform:translate(-50%,-50%);background:rgba(10,11,12,.88);color:#fff;border:1.5px solid;border-radius:99px;padding:5px 11px;font-size:12.5px;font-weight:700;white-space:nowrap;z-index:3}
+.zoneMarker b{color:#fff}
+.mapNote{color:var(--mut);font-size:13px;margin:10px 2px 0;line-height:1.9}
+.forecast{display:flex;gap:6px;margin-top:14px;background:var(--card);border:1px solid var(--border);border-radius:16px;padding:12px 8px}
+.fcItem{flex:1;text-align:center;border-radius:12px;padding:6px 2px}
+.fcItem.on{background:var(--card2);outline:1px solid var(--border)}
+.fcItem b{display:block;font-size:21px;font-weight:900}
+.fcItem small{color:var(--mut);font-size:12px}
+
+/* zones / streets */
+.textTabs{display:flex;gap:22px;border-bottom:1px solid var(--border);margin-bottom:16px}
+.textTabs button{background:none;border:0;color:var(--mut);font-size:17px;font-weight:800;padding:8px 2px;border-bottom:2.5px solid transparent;margin-bottom:-1px}
+.textTabs button.on{color:var(--text);border-bottom-color:var(--text)}
+.zoneGrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+.zoneCard{position:relative;text-align:center;background:var(--card2);border:1px solid var(--border);border-radius:15px;padding:16px 10px 12px;color:var(--text);display:flex;flex-direction:column;gap:2px;align-items:center}
+.zoneCard.sel{border-color:var(--accent)}
+.zoneDelta{position:absolute;top:9px;inset-inline-start:10px;font-size:11px;color:var(--mut);background:var(--chip);border:1px solid var(--border);border-radius:99px;padding:1px 7px}
+.zoneName{font-weight:800;font-size:15.5px}
+.zonePct{font-size:30px;font-weight:900;line-height:1.15}
+.zoneStatus{font-weight:800;font-size:13.5px}
+.zoneBar{display:block;width:100%;height:4px;background:var(--track);border-radius:99px;overflow:hidden;margin-top:9px}
+.zoneBar i{display:block;height:100%;border-radius:99px}
+.zoneDetail{margin-top:18px;border-top:1px solid var(--border);padding-top:6px}
+.zoneDetail h3{font-size:16.5px;margin:10px 0 4px}
+.dirGroup{margin-bottom:4px}
+.explainer{color:var(--mut);font-size:13px;line-height:1.9;margin:0 0 8px}
+.streetRow{display:flex;align-items:center;gap:10px;padding:11px 0;border-bottom:1px solid var(--border)}
+.streetRow:last-child{border-bottom:0}
+.streetName{font-weight:700;font-size:14.5px;flex:0 1 42%}
+.streetBar{flex:1;height:5px;background:var(--track);border-radius:99px;overflow:hidden}
+.streetBar i{display:block;height:100%;border-radius:99px}
+.streetStatus{font-weight:800;font-size:13.5px;min-width:52px;text-align:end}
+
+/* buttons & inputs */
+.btn{display:block;width:100%;text-align:center;background:var(--accent2);color:#03252B;border:0;border-radius:13px;padding:13px;font-size:16px;font-weight:800;cursor:pointer;margin-top:12px;text-decoration:none}
+.btn.ghost{background:var(--card2);border:1px solid var(--border);color:var(--text)}
+.btn.big{margin-top:10px}
+.btn.disabled{opacity:.38;pointer-events:none}
+.btn.whatsapp{background:#1FA855;color:#fff}
+.btn:disabled{opacity:.38;cursor:not-allowed}
+input[type=text]{width:100%;background:var(--input);border:1px solid var(--border);color:var(--text);border-radius:12px;padding:12px;font-family:inherit;font-size:15.5px;margin-top:6px}
+.collapseRow{display:flex;justify-content:space-between;align-items:center;width:100%;background:none;border:0;border-top:1px solid var(--border);color:var(--text);font-size:15px;font-weight:700;padding:14px 0 4px;margin-top:12px}
+.collapseBody{padding-top:6px}
+.halfRow{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.halfRow label{font-size:13.5px;color:var(--mut);font-weight:700}
+.okLine{color:#22C55E;font-weight:700;font-size:14px}
+.errLine{color:#F87171;font-size:14px}
+.needLoc{text-align:center;color:var(--mut);font-size:13px;margin:8px 0 0}
+
+/* peak hours */
+.dayPills{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:12px}
+.dayPills button{background:var(--chip);border:1px solid var(--border);color:var(--mut);border-radius:99px;padding:6px 13px;font-size:13.5px;font-weight:700}
+.dayPills button.on{background:#fff;color:#000;border-color:#fff}
+.peakSummary{margin:4px 0;font-size:14.5px}
+.diffLine{color:#F87171;font-size:13px;margin:2px 0 10px;font-weight:700}
+.chart{position:relative;display:flex;gap:3px;align-items:flex-end;padding-top:20px}
+.barCol{flex:1;display:flex;flex-direction:column;align-items:center;gap:5px}
+.barTrack{width:100%;height:130px;display:flex;align-items:flex-end}
+.barTrack i{display:block;width:100%;border-radius:4px 4px 0 0;min-height:3px}
+.barCol small{color:var(--mut);font-size:10.5px;height:14px}
+.liveLine{position:absolute;right:0;left:0;border-top:2px dashed var(--accent);pointer-events:none}
+.liveLine span{position:absolute;top:-19px;inset-inline-end:0;color:var(--accent);font-size:11.5px;font-weight:800}
+
+/* cross links */
+.crossGrid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:26px 0}
+.crossCard{position:relative;text-align:start;background:var(--card);border:1px solid var(--border);border-radius:18px;padding:18px;color:var(--text);display:flex;flex-direction:column;gap:6px}
+.crossCard b{font-size:17px;font-weight:800}
+.crossCard span{color:var(--mut);font-size:13.5px;line-height:1.8}
+.crossCard em{position:absolute;top:16px;inset-inline-end:16px;font-style:normal;color:var(--accent);font-weight:900}
+
+/* calendar */
+.prayerCard{background:#221D0E;border:1px solid #4A3F1A;border-radius:16px;padding:24px 20px;margin:22px 0 8px;text-align:center;color:#F5EFD8}
+.arch{width:104px;margin:0 auto}
+.prayerHead{font-size:19px;font-weight:800;margin-top:2px}
+.hijri{color:#C9A227;font-weight:800;margin-top:8px;font-size:16px}
+.prayerCity{color:#A79B72;font-size:13px;margin-top:2px}
+.nextChip{display:inline-block;background:#2E270F;border:1px solid #4A3F1A;color:#E7D48A;border-radius:99px;padding:5px 14px;font-size:13px;font-weight:700;margin-top:12px}
+.prayerRows{margin-top:14px;text-align:start}
+.prayerRow{display:flex;justify-content:space-between;align-items:center;padding:11px 2px;border-bottom:1px solid #3A3316}
+.prayerRow:last-child{border-bottom:0}
+.prayerName{display:inline-flex;gap:8px;align-items:center;font-weight:700}
+.prayerName i{font-style:normal;color:#C9A227}
+.prayerTime{font-size:17px;font-weight:800}
+.prayerNote{color:#A79B72;font-size:12px;line-height:1.9;margin:12px 0 0}
+.noEvents{text-align:center;color:var(--mut);margin:16px 0;font-size:14px}
+
+/* trends & guide */
+.trendItem{padding:4px 0 10px}
+.thinBar{height:5px;background:var(--track);border-radius:99px;overflow:hidden}
+.thinBar i{display:block;height:100%;border-radius:99px}
+.guideTitle{font-size:17.5px;font-weight:800;margin:0 0 6px}
+.guideText{line-height:2;font-size:14.5px;margin:0}
+
+/* footer */
+.footer{display:flex;justify-content:space-between;align-items:center;gap:10px;border-top:1px solid var(--border);margin-top:34px;padding-top:16px;color:var(--mut);font-size:13px}
+.footLink{background:none;border:0;color:var(--mut);font-size:13px;text-decoration:underline}
+.footNote{color:var(--mut);font-size:12px;line-height:1.9;text-align:center;margin-top:10px}
+
+@media (max-width:640px){
+  .wrap{padding:0 12px 46px}
+  iframe.map{height:340px}
+  .gaugeWrap{width:248px}
+  .gaugeNum{font-size:46px}
+  .heroHead{font-size:19px}
+  .crossGrid{grid-template-columns:1fr}
+  .streetName{flex-basis:38%;font-size:13px}
+  .zoneMarker{font-size:11px;padding:4px 8px}
+  .pillNav button{padding:8px 14px;font-size:14px}
+  .card{padding:16px}
+  .fcItem b{font-size:17px}
+}
