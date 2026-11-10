@@ -98,6 +98,11 @@ button{font-family:inherit;cursor:pointer}
 .mapBtn.on{border-color:#00C4D0;color:#7FE7F0}
 .mapBtnGroup{display:flex;gap:8px}
 /* leaflet dark overrides */
+/* Esri Dark Gray Canvas pushed toward near-black like the original's map:
+   base heavily darkened/desaturated, label layer only lightly so street
+   names stay legible gray-white above the colored roads. */
+.esri-dark{filter:brightness(.62) contrast(1.08) saturate(.6)}
+.esri-labels{filter:brightness(.85) contrast(1.05)}
 .leaflet-bar{border:1px solid #1E2A2E;border-radius:10px;overflow:hidden;box-shadow:0 2px 10px rgba(0,0,0,.45)}
 .leaflet-bar a{background:#12181C;color:#fff;border-bottom:1px solid #1E2A2E;width:29px;height:29px;line-height:29px}
 .leaflet-bar a:hover{background:#1E2A2E}
